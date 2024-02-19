@@ -1,41 +1,46 @@
-function myIsEqual(a, b, map = new Map()) {
-    console.log(a, b);
-    if(a === b) return true;
+/**
+ * @param {*} valueA
+ * @param {*} valueB
+ * @return {boolean}
+ */
 
-    if(map.has(a) && (map.get(a) === b)) return  true;
+const checkBothArrays = (valueA, valueB) => Array.isArray(valueA) && Array.isArray(valueB);
+const checkBothObjects = (valueA, valueB) =>  
+  Object.prototype.toString.call(valueA) === '[object Object]' &&
+  Object.prototype.toString.call(valueB) === '[object Object]';
 
-    map.set(a, b);
+export default function deepEqual(valueA, valueB, map = new Map()) {
+  if(Object.is(valueA, valueB)) return true;
 
-    if(typeof a === 'object' && typeof b === 'object') {
-        const a_keys = Object.keys(a);
-        const b_keys = Object.keys(b);
+  const isBothObjects = checkBothObjects(valueA, valueB);
+  const isBothArrays  = checkBothArrays(valueA, valueB);
 
-        if(a_keys.length !== b_keys.length) return false;
-
-        for(let i = 0; i < a_keys.length; i++) {
-            if(myIsEqual(a[a_keys[i]], b[b_keys[i]], map) === false) return false;
-        }
-        return true;
-    }
+  if(!isBothArrays && !isBothObjects) {
     return false;
-}
+  }
 
-const a = {
-    id: '123',
-    name: 'bhargav',
-    college: {
-        rollNumber: 2019045,
-        collegeName: "IIITDMJ",
+  if(map.has(valueA) && (map.get(valueA) === valueB)) {
+    return true;
+  }
+
+  map.set(valueA, valueB);
+
+  const aKeys = Object.keys(valueA);
+  const bKeys = Object.keys(valueB);
+
+  if(aKeys.length !== bKeys.length) return false;
+
+  for(const key in valueA) {
+    if(!deepEqual(valueA[key], valueB[key], map)) {
+      return false;
     }
+  }
+
+  return true;
 }
 
-const b = {
-    id: '123',
-    name: 'bhargav',
-    college: {
-        rollNumber: 2019045,
-        collegeName: "IIITDM"
-    }
-}
 
-console.log(myIsEqual(a,b));
+deepEqual('foo', 'foo'); // true
+deepEqual({ id: 1 }, { id: 1 }); // true
+deepEqual([1, 2, 3], [1, 2, 3]); // true
+deepEqual([{ id: '1' }], [{ id: '2' }]); // false
